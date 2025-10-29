@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Flappy Meme</title>
+<style>
+  body { margin: 0; background: #222; display: flex; justify-content: center; align-items: center; height: 100vh; }
+  canvas { background: skyblue; }
+</style>
+</head>
+<body>
+<canvas id="game" width="400" height="600"></canvas>
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const BIRD_SRC = "bird.png";
+const PIPE_SRC = "pipe.png";
+
+const birdImg = new Image();
+birdImg.src = BIRD_SRC;
+
+const pipeImg = new Image();
+pipeImg.src = PIPE_SRC;
+
+let bird = { x: 100, y: 300, r: 28, vy: 0 };
+let pipes = [];
+let gravity = 0.4;
+let jump = -7;
+let gap = 150;
+let score = 0;
+
+function spawnPipe() {
+  let topH = Math.random() * (canvas.height - gap - 100) + 50;
+  pipes.push({ x: canvas.width, top: topH });
+}
+
+setInterval(spawnPipe, 1500);
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  bird.vy += gravity;
+  bird.y += bird.vy;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(bird.x, bird.y, bird.r, 0, Math.PI*2);
+  ctx.clip();
+  ctx.drawImage(birdImg, bird.x - bird.r, bird.y - bird.r, bird.r*2, bird.r*2);
+  ctx.restore();
+
+  for (let p of pipes) {
+    p.x -= 3;
+
+    ctx.drawImage(pipeImg, p.x, 0, 80, p.top);
+    ctx.drawImage(pipeImg, p.x, p.top + gap, 80, canvas.height - (p.top + gap));
+
+    if (bird.x + bird.r > p.x && bird.x - bird.r < p.x + 80) {
+      if (bird.y - bird.r < p.top || bird.y + bird.r > p.top + gap) {
+        alert("Game Over! Score: " + score);
+        location.reload();
+      }
+    }
+
+    if (p.x + 80 === bird.x) score++;
+  }
+
+  requestAnimationFrame(draw);
+}
+
+window.addEventListener("keydown", () => bird.vy = jump);
+window.addEventListener("touchstart", () => bird.vy = jump);
+
+draw();
+</script>
+</body>
+</html>
